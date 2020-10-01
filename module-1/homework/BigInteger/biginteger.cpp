@@ -340,11 +340,3 @@ bool operator<=(const BigInteger& a, const BigInteger& b) {
 bool operator>=(const BigInteger& a, const BigInteger& b) {
 	return !(a < b);
 }
-
-#ifdef CHECK
-
-int main() {
-	return 0;
-}
-
-#endif
