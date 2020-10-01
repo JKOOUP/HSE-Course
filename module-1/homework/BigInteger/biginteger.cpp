@@ -157,6 +157,35 @@ bool BigInteger::less(const BigInteger& a, const BigInteger& b) {
 	return false;
 }
 
+BigInteger::BigInteger(): 
+	block_max(static_cast<uint32_t>(1e9)), 
+	block_count(128), 
+	leftNull(0), 
+	number(128, 0), 
+	is_neg(false) 
+{};
+
+BigInteger::BigInteger(const BigInteger& bigInt): 
+	block_max(bigInt.block_max), 
+	block_count(bigInt.block_count), 
+	leftNull(bigInt.leftNull), 
+	number(bigInt.number), 
+	is_neg(bigInt.is_neg) 
+{};
+
+BigInteger::operator bool() {
+	return (this->leftNull != 0);
+}
+
+BigInteger::BigInteger(int64_t _number): block_max(static_cast<uint32_t>(1e9)), block_count(128) {
+	number.assign(128, 0);
+	number[1] = static_cast<uint32_t>(std::abs(_number)) / block_max;
+	number[0] = static_cast<uint32_t>(std::abs(_number)) % block_max;
+
+	is_neg = (_number < 0);
+	BigInteger::set_left_null(*this);
+};
+
 void BigInteger::swap(BigInteger& a, BigInteger& b) {
 	BigInteger res = a;
 	a = b;

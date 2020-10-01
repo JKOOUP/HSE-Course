@@ -30,28 +30,19 @@ private:
 	static bool less(const BigInteger& a, const BigInteger& b);
 
 public:
-	
+
 	std::vector <uint32_t> number;
 	bool is_neg;
 
-	BigInteger(): block_max(static_cast<uint32_t>(1e9)), block_count(128), leftNull(0), number(128, 0), is_neg(false) {};
+	BigInteger();
 
-	BigInteger(const BigInteger& Int): block_max(Int.block_max), block_count(Int.block_count), leftNull(Int.leftNull), number(Int.number), is_neg(Int.is_neg) {};
+	BigInteger(const BigInteger& bigInt);
 	
-	BigInteger(int64_t _number): block_max(static_cast<uint32_t>(1e9)), block_count(128), leftNull(0) {
-		number.assign(128, 0);
-		number[1] = static_cast<uint32_t>(std::abs(_number)) / block_max;
-		number[0] = static_cast<uint32_t>(std::abs(_number)) % block_max;
-
-		is_neg = (_number < 0);
-		BigInteger::set_left_null(*this);
-	};
+	BigInteger(int64_t _number);
 
 	~BigInteger() = default;
 
-	explicit operator bool() const {
-		return (this->leftNull != 0);
-	}
+	explicit operator bool();
 
 	static void swap(BigInteger& a, BigInteger& b);
 
