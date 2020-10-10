@@ -237,7 +237,10 @@ void list::resize(std::size_t count) {
 void list::swap(list& other) {
     Node::swap(this->head, other.head);
     Node::swap(this->tail, other.tail);
-    std::swap(this->list_size, other.list_size);
+
+    int tmp_size = this->list_size;
+    this->list_size = other.list_size;
+    other.list_size = tmp_size;
 }
 
 void list::remove(const int& value) {
