@@ -69,9 +69,8 @@ public:
 
 private:
 	
-	const uint32_t block_max;
-	const uint32_t block_count;
-	uint32_t leftNull;
+	const std::size_t block_max;
+	std::size_t number_size;
 	std::vector <uint32_t> number;
 	bool is_neg;
 
@@ -79,7 +78,13 @@ private:
 
 	static std::string BigIntegerToString(const BigInteger& bigInt);
 
-	static void set_left_null(BigInteger& bigInt);
+	static void get_number_size(BigInteger& bigInt);
+
+	static std::size_t get_real_size(const BigInteger& bigInt);
+
+	static void set_number_size(BigInteger& bigInt);
+
+	static void set_number_size(BigInteger& bigInt, std::size_t x);
 
 	static const BigInteger abs_with_copy(const BigInteger& bigInt);
 
