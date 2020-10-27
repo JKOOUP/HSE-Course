@@ -78,13 +78,13 @@ private:
 
 	static std::string BigIntegerToString(const BigInteger& bigInt);
 
-	static void get_number_size(BigInteger& bigInt);
-
 	static std::size_t get_real_size(const BigInteger& bigInt);
-
+	
 	static void set_number_size(BigInteger& bigInt);
 
-	static void set_number_size(BigInteger& bigInt, std::size_t x);
+	static void resize_number(BigInteger& bigInt);
+
+	static void resize_number(BigInteger& bigInt, const std::size_t x);
 
 	static const BigInteger abs_with_copy(const BigInteger& bigInt);
 

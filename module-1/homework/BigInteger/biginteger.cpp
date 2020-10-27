@@ -16,30 +16,25 @@ void reverse(std::string& str) {
 	}
 }
 
-void BigInteger::get_number_size(BigInteger& bigInt) {
-	std::size_t real_size = 1;
-	for (std::size_t i = 0; i < bigInt.number_size; i++)
-		if (bigInt.number[i] > 0)
-			real_size = static_cast<uint32_t>(i + 1);
-
-	bigInt.number_size = real_size;
-}
-
 std::size_t BigInteger::get_real_size(const BigInteger& bigInt) {
 	std::size_t real_size = 1;
 	for (std::size_t i = 0; i < bigInt.number_size; i++)
 		if (bigInt.number[i] > 0)
-			real_size = static_cast<uint32_t>(i + 1);
+			real_size = i + 1;
 
 	return real_size;
 }
 
 void BigInteger::set_number_size(BigInteger& bigInt) {
-	BigInteger::get_number_size(bigInt);
+	bigInt.number_size = BigInteger::get_real_size(bigInt);
+}
+
+void BigInteger::resize_number(BigInteger& bigInt) {
+	BigInteger::set_number_size(bigInt);
 	bigInt.number.resize(bigInt.number_size);
 }
 
-void BigInteger::set_number_size(BigInteger& bigInt, std::size_t x) {
+void BigInteger::resize_number(BigInteger& bigInt, const std::size_t x) {
 	bigInt.number_size = x;
 	bigInt.number.resize(x);
 }
@@ -62,7 +57,7 @@ const BigInteger& BigInteger::sum_abs(BigInteger& a, const BigInteger& b) {
 	}
 
 
-	BigInteger::set_number_size(a);
+	BigInteger::resize_number(a);
 	return a;
 }
 
@@ -73,15 +68,16 @@ std::size_t BigInteger::find_next_pos(const BigInteger& a, const std::size_t pos
 			next = i;
 			break;
 		}
+
 	return next;
 }
 
 void BigInteger::make_sub(const std::size_t l, const std::size_t r, BigInteger& a, const BigInteger& b, bool rev) {
 	for (std::size_t i = l; i < r; i++)
 		if (rev == false)
-			a.number[i] = static_cast<uint32_t>(1e9 - 1) - (i < b.number_size ? b.number[i] : 0);
+			a.number[i] = static_cast<uint32_t>(a.block_max) - 1 - (i < b.number_size ? b.number[i] : 0);
 		else
-			a.number[i] = static_cast<uint32_t>(1e9 - 1) - a.number[i]; 
+			a.number[i] = static_cast<uint32_t>(a.block_max) - 1 - a.number[i]; 
 }
 
 const BigInteger& BigInteger::substraction_from_left(BigInteger& a, const BigInteger& b) {
@@ -94,12 +90,12 @@ const BigInteger& BigInteger::substraction_from_left(BigInteger& a, const BigInt
 		std::size_t next = BigInteger::find_next_pos(a, i);
 		BigInteger::make_sub(i + 1, next, a, b, false);
 
-		a.number[i] = static_cast<uint32_t>(1e9) - b.number[i] + a.number[i];
+		a.number[i] = static_cast<uint32_t>(a.block_max) - b.number[i] + a.number[i];
 		a.number[next]--;
 		i = next - 1;
 	}
 
-	BigInteger::set_number_size(a);
+	BigInteger::resize_number(a);
 	return a;
 }
 
@@ -113,19 +109,19 @@ const BigInteger& BigInteger::substraction_from_right(BigInteger& a, const BigIn
 		std::size_t next = BigInteger::find_next_pos(b, i);
 		BigInteger::make_sub(i + 1, next, a, b, true);
 
-		a.number[i] = static_cast<uint32_t>(1e9) - a.number[i] + b.number[i];
+		a.number[i] = static_cast<uint32_t>(a.block_max) - a.number[i] + b.number[i];
 		a.number[next]++;
 		i = next - 1;
 	}
 
-	BigInteger::set_number_size(a);
+	BigInteger::resize_number(a);
 	return a;
 }
 
 const std::vector<BigInteger> BigInteger::split(const BigInteger& bigInt, const std::size_t size) {
 	BigInteger first, second;
-	BigInteger::set_number_size(first, (bigInt.number_size > size / 2 ? bigInt.number_size - size / 2 : size / 2));
-	BigInteger::set_number_size(second, size / 2);
+	BigInteger::resize_number(first, (bigInt.number_size > size / 2 ? bigInt.number_size - size / 2 : size / 2));
+	BigInteger::resize_number(second, size / 2);
 
 	std::size_t real_size = BigInteger::get_real_size(bigInt);
 	for (std::size_t i = 0; i < size / 2; i++)
@@ -134,8 +130,8 @@ const std::vector<BigInteger> BigInteger::split(const BigInteger& bigInt, const 
 	for (std::size_t i = size / 2; i < bigInt.number_size; i++)
 		first.number[i - size / 2] = (i < real_size ? bigInt.number[i] : 0);
 
-	BigInteger::set_number_size(first);
-	BigInteger::set_number_size(second);
+	BigInteger::resize_number(first);
+	BigInteger::resize_number(second);
 
 	std::vector <BigInteger> result = {first, second};
 	return result;
@@ -143,12 +139,12 @@ const std::vector<BigInteger> BigInteger::split(const BigInteger& bigInt, const 
 
 const BigInteger BigInteger::mult10(const BigInteger& bigInt, const std::size_t exponent) {
 	BigInteger result;
-	BigInteger::set_number_size(result, exponent + bigInt.number_size);
+	BigInteger::resize_number(result, exponent + bigInt.number_size);
 
 	for (std::size_t i = exponent; i < exponent + bigInt.number_size; i++)
 		result.number[i] = bigInt.number[i - exponent]; 
 
-	BigInteger::set_number_size(result);
+	BigInteger::resize_number(result);
 	return result;
 } 
 
@@ -163,7 +159,7 @@ const BigInteger BigInteger::mult(const std::size_t size, BigInteger x, BigInteg
 		result.number[0] = static_cast<uint32_t>(temp % result.block_max);
 		result.number[1] = static_cast<uint32_t>(temp / result.block_max);
 
-		BigInteger::set_number_size(result);
+		BigInteger::resize_number(result);
 		return result;
 	}
 
@@ -183,21 +179,22 @@ const BigInteger BigInteger::mult(const std::size_t size, BigInteger x, BigInteg
 	BigInteger shifted_second_factor = BigInteger::mult10(second_factor, size / 2);
 	BigInteger result = shifted_first_factor + shifted_second_factor + third_factor;
 
-	BigInteger::set_number_size(result);
+	BigInteger::resize_number(result);
 	return result;
 }
 
 const BigInteger BigInteger::div2(const BigInteger& bigInt) {
 	BigInteger result;
-	BigInteger::set_number_size(result, bigInt.number_size);
+	BigInteger::resize_number(result, bigInt.number_size);
 
 	uint32_t remainder = 0;
 	for (int32_t i = static_cast<int32_t>(bigInt.number_size) - 1; i >= 0; i--) {
-		result.number[i] = (remainder * static_cast<uint32_t>(1e9) + bigInt.number[i]) / 2;
-		remainder = (remainder * static_cast<uint32_t>(1e9) + bigInt.number[i]) % 2;
+		uint32_t tmp = remainder * static_cast<uint32_t>(bigInt.block_max) + bigInt.number[i];
+		result.number[i] = tmp / 2;
+		remainder = tmp % 2;
 	}
 
-	BigInteger::set_number_size(result);
+	BigInteger::resize_number(result);
 	return result;
 }
 
@@ -211,7 +208,7 @@ const BigInteger BigInteger::div_abs(const BigInteger& a, const BigInteger& b) {
 			r = m;
 	}
 
-	BigInteger::set_number_size(l);
+	BigInteger::resize_number(l);
 	return l;
 }
 
@@ -227,7 +224,7 @@ bool BigInteger::less(const BigInteger& a, const BigInteger& b) {
 }
 
 BigInteger::BigInteger(): 
-	block_max(static_cast<uint32_t>(1e9)),  
+	block_max(static_cast<std::size_t>(1e9)),  
 	number_size(2), 
 	number(2, 0), 
 	is_neg(false) 
@@ -240,17 +237,17 @@ BigInteger::BigInteger(const BigInteger& bigInt):
 	is_neg(bigInt.is_neg) 
 {};
 
-BigInteger::operator bool() {
-	return (*this != 0);
-}
-
-BigInteger::BigInteger(int64_t _number): block_max(static_cast<uint32_t>(1e9)) {
-	number.assign(128, 0);
+BigInteger::BigInteger(int64_t _number): block_max(static_cast<std::size_t>(1e9)) {
+	number.assign(2, 0);
 	number[1] = static_cast<uint32_t>(std::abs(_number) / block_max);
 	number[0] = static_cast<uint32_t>(std::abs(_number) % block_max);
 	number_size = 1 + (static_cast<uint32_t>(std::abs(_number)) / block_max > 0);
 	is_neg = (_number < 0);
 };
+
+BigInteger::operator bool() {
+	return (*this != 0);
+}
 
 void BigInteger::swap(BigInteger& a, BigInteger& b) {
 	std::swap(a.number, b.number);
@@ -260,7 +257,7 @@ void BigInteger::swap(BigInteger& a, BigInteger& b) {
 
 const BigInteger BigInteger::StringToBigInteger(std::string& strNumber) {
 	BigInteger result;
-	BigInteger::set_number_size(result, strNumber.size() / 9 + 1);
+	BigInteger::resize_number(result, strNumber.size() / 9 + 1);
 
 	if (strNumber[0] == '-') {
 		result.is_neg = 1;
@@ -279,7 +276,7 @@ const BigInteger BigInteger::StringToBigInteger(std::string& strNumber) {
 		currNumber /= static_cast<uint32_t>(result.block_max);
 	}
 
-	BigInteger::set_number_size(result);
+	BigInteger::resize_number(result);
 	return result;
 }
 
@@ -291,7 +288,7 @@ std::string BigInteger::BigIntegerToString(const BigInteger& bigInt) {
 	for (int32_t i = static_cast<int32_t>(bigInt.number_size) - 1; i >= 0; i--) {
 		std::string add = std::to_string(bigInt.number[i]);
 		
-		while (add.size() < 9 and i < static_cast<int32_t>(bigInt.number_size) - 1)
+		while (add.size() < 9 && i < static_cast<int32_t>(bigInt.number_size) - 1)
 			add = "0" + add;
 		
 		result += add;
@@ -315,7 +312,7 @@ BigInteger& BigInteger::operator=(const BigInteger& bigInt) {
 }
 
 BigInteger& BigInteger::operator+=(const BigInteger& bigInt) {
-	BigInteger::set_number_size(*this, max(this->number_size, bigInt.number_size) + 1);
+	BigInteger::resize_number(*this, max(this->number_size, bigInt.number_size) + 1);
 	if (this->is_neg == bigInt.is_neg)
 		return *this = BigInteger::sum_abs(*this, bigInt);
 
@@ -325,16 +322,13 @@ BigInteger& BigInteger::operator+=(const BigInteger& bigInt) {
 	else
 		BigInteger::substraction_from_left(*this, bigInt);
 	
-	this->is_neg = sgn;
-	if (!bigInt.is_neg)
-		this->is_neg ^= 1;
-
-	BigInteger::set_number_size(*this);
+	this->is_neg = sgn ^ (!bigInt.is_neg);
+	BigInteger::resize_number(*this);
 	return *this;
 }
 
 BigInteger& BigInteger::operator-=(const BigInteger& bigInt) {
-	BigInteger::set_number_size(*this, max(this->number_size, bigInt.number_size) + 1);
+	BigInteger::resize_number(*this, max(this->number_size, bigInt.number_size) + 1);
 	if (this->is_neg != bigInt.is_neg)
 		return *this = BigInteger::sum_abs(*this, bigInt);
 
@@ -344,23 +338,20 @@ BigInteger& BigInteger::operator-=(const BigInteger& bigInt) {
 	else
 		BigInteger::substraction_from_left(*this, bigInt);
 
-	this->is_neg = sgn;
-	if (bigInt.is_neg)
-		this->is_neg ^= 1;
-
-	BigInteger::set_number_size(*this);
+	this->is_neg = sgn ^ bigInt.is_neg;
+	BigInteger::resize_number(*this);
 	return *this;
 }
 
 BigInteger& BigInteger::operator*=(const BigInteger& bigInt) {
 	bool sgn = this->is_neg ^ bigInt.is_neg;
 	std::size_t size = max(this->number_size, bigInt.number_size);
-	BigInteger::set_number_size(*this, bigInt.number_size + this->number_size + 1);
+	BigInteger::resize_number(*this, bigInt.number_size + this->number_size + 1);
 
 	*this = BigInteger::mult(size, *this, bigInt);
 	this->is_neg = sgn;
 
-	BigInteger::set_number_size(*this);
+	BigInteger::resize_number(*this);
 	return *this;
 }
 
@@ -369,13 +360,13 @@ BigInteger& BigInteger::operator/=(const BigInteger& bigInt) {
 	*this = BigInteger::div_abs(*this, bigInt);
 	this->is_neg = sgn;
 
-	BigInteger::set_number_size(*this);
+	BigInteger::resize_number(*this);
 	return *this;
 }
 
 BigInteger& BigInteger::operator%=(const BigInteger& bigInt) {
 	*this -= bigInt * (*this / bigInt);	
-	BigInteger::set_number_size(*this);
+	BigInteger::resize_number(*this);
 	return *this;
 }
 
