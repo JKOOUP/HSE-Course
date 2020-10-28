@@ -1,24 +1,34 @@
 #include "list.h"
 
-task::Node::Node(): prev_element(nullptr), next_element(nullptr), value(0) {};
+task::Node::Node(): 
+    prev_element(nullptr), 
+    next_element(nullptr), 
+    value(0) 
+{}
 
 task::Node::Node(Node* const left, Node* const right, int elem) {
     prev_element = left;
     next_element = right;
     value = elem;
-};
+}
+
+task::Node::Node(int elem): 
+    prev_element(nullptr), 
+    next_element(nullptr), 
+    value(elem) 
+{}
 
 task::Node::Node(const Node& node) {
     prev_element = node.prev_element;
     next_element = node.next_element;
     value = node.value;
-};
+}
 
 task::Node::~Node() {
     prev_element = next_element = nullptr;
     delete prev_element;
     delete next_element;
-};
+}
 
 task::Node& task::Node::operator=(const Node& node) {
     next_element = node.next_element;
@@ -31,7 +41,7 @@ void task::Node::set_prev_element(Node* const prev) {
     prev_element = prev;
 }
 
-task::Node* task::Node::get_ptr_to_prev_element() const {
+task::Node* task::Node::get_ptr_to_prev() const {
     return prev_element;
 }
 
@@ -39,16 +49,24 @@ void task::Node::set_next_element(Node* const next) {
     next_element = next;
 }
 
-task::Node* task::Node::get_ptr_to_next_element() const {
+task::Node* task::Node::get_ptr_to_next() const {
     return next_element;
 }
 
-const int& task::Node::get_value() const {
+const int& task::Node::get() const {
     return value;
 }
 
-int& task::Node::get_value() {
+int& task::Node::get() {
     return value;
+}
+
+int task::Node::get_next_value() const {
+    return this->get_ptr_to_next()->get();
+}
+
+int task::Node::get_prev_value() const {
+    return this->get_ptr_to_prev()->get();
 }
 
 void task::Node::swap(Node* &a, Node* &b) {
@@ -57,31 +75,45 @@ void task::Node::swap(Node* &a, Node* &b) {
     b = c;
 }
 
-task::list::list(): head(nullptr), tail(nullptr), list_size(0) {};
+void task::Node::inc(Node* &ptr) {
+    ptr = ptr->get_ptr_to_next();
+}
 
-task::list::list(std::size_t count, const int& value): list_size(count) {
-    head = new task::Node(nullptr, nullptr, value);
+void task::Node::dec(Node* &ptr) {
+    ptr = ptr->get_ptr_to_prev();
+}
+
+task::list::list(): 
+    head(nullptr), 
+    tail(nullptr), 
+    list_size(0) 
+{};
+
+task::list::list(std::size_t count, const int& value) {
+    head = new task::Node(value);
     task::Node* curr_node = head;
 
-    for (std::size_t i = 0; i < count - 1; i++) {
-        task::Node* new_node = new task::Node(nullptr, nullptr, value);
+    for (std::size_t i = 0; i + 1 < count; i++) {
+        task::Node* new_node = new task::Node(value);
         new_node->set_prev_element(curr_node);
         curr_node->set_next_element(new_node);
         curr_node = new_node;
     }
+
     tail = curr_node;
-}   
+    list_size = count;
+}  
 
 task::list::list(const task::list& other) {
     this->list_size = other.size();
 
     task::Node* curr_node = other.head;
-    task::Node* prev_node = new task::Node(nullptr, nullptr, other.head->get_value());
+    task::Node* prev_node = new task::Node(other.head->get());
     head = prev_node;
 
-    for (std::size_t i = 0; i < other.size() - 1; i++) {
-        curr_node = curr_node->get_ptr_to_next_element();
-        task::Node* new_node = new task::Node(nullptr, nullptr, curr_node->get_value());
+    for (std::size_t i = 0; i + 1 < other.size(); i++) {
+        curr_node = curr_node->get_ptr_to_next();
+        task::Node* new_node = new task::Node(curr_node->get());
         
         prev_node->set_next_element(new_node);
         new_node->set_prev_element(prev_node);
@@ -96,7 +128,7 @@ task::list::~list() {
     task::Node* curr_node = tail;
     while (curr_node != head) {
         task::Node* node_to_delete = curr_node;
-        curr_node = curr_node->get_ptr_to_prev_element();
+        task::Node::dec(curr_node);
         delete node_to_delete;
     }
 
@@ -109,12 +141,12 @@ task::list& task::list::operator=(const list& other) {
 
     this->list_size = other.size();
     task::Node* curr_node = other.head;
-    task::Node* prev_node = new task::Node(nullptr, nullptr, other.head->get_value());
+    task::Node* prev_node = new task::Node(other.head->get());
     head = prev_node;
 
-    for (std::size_t i = 0; i < other.size() - 1; i++) {
-        curr_node = curr_node->get_ptr_to_next_element();
-        task::Node* new_node = new task::Node(nullptr, nullptr, curr_node->get_value());
+    for (std::size_t i = 0; i + 1< other.size(); i++) {
+        task::Node::inc(curr_node);
+        task::Node* new_node = new task::Node(curr_node->get());
         
         prev_node->set_next_element(new_node);
         new_node->set_prev_element(prev_node);
@@ -127,19 +159,19 @@ task::list& task::list::operator=(const list& other) {
 }
 
 int& task::list::front() {
-    return head->get_value();
+    return head->get();
 }
 
 const int& task::list::front() const {
-    return head->get_value();
+    return head->get();
 }
 
 int& task::list::back() {
-    return tail->get_value();
+    return tail->get();
 }
 
 const int& task::list::back() const {
-    return tail->get_value();
+    return tail->get();
 }
 
 bool task::list::empty() const {
@@ -154,16 +186,18 @@ void task::list::clear() {
     task::Node* curr_node = tail;
     while (curr_node != head) {
         task::Node* node_to_delete = curr_node;
-        curr_node = curr_node->get_ptr_to_prev_element();
+        task::Node::dec(curr_node);
         delete node_to_delete;
     }
+
     head = tail = nullptr;
     delete curr_node;
     list_size = 0;
 }
 
-void task::list::push_back(const int& value) {
-    task::Node* new_node = new task::Node(nullptr, nullptr, value);
+void task::list::push_back(const int& val) {
+    int value = val;
+    task::Node* new_node = new task::Node(value);
 
     if (list_size != 0) {
         new_node->set_prev_element(tail);
@@ -185,7 +219,7 @@ void task::list::pop_back() {
     if (list_size == 1)
         head = tail = nullptr;
     else {
-        tail = tail->get_ptr_to_prev_element();
+        task::Node::dec(tail);
         tail->set_next_element(nullptr);
     }
     
@@ -193,8 +227,9 @@ void task::list::pop_back() {
     list_size--;
 }
 
-void task::list::push_front(const int& value) {
-    task::Node* new_node = new task::Node(nullptr, nullptr, value);
+void task::list::push_front(const int& val) {
+    int value = val;
+    task::Node* new_node = new task::Node(value);
     
     if (list_size != 0) {
         new_node->set_next_element(head);
@@ -216,7 +251,7 @@ void task::list::pop_front() {
     if (list_size == 1)
         head = tail = nullptr;
     else {
-        head = head->get_ptr_to_next_element();
+        task::Node::inc(head);
         head->set_prev_element(nullptr);
     }
 
@@ -241,35 +276,46 @@ void task::list::swap(task::list& other) {
     other.list_size = tmp_size;
 }
 
-void task::list::remove(const int& value) {
-    while (list_size > 0 && head->get_value() == value)
+void task::list::remove(const int& val) {
+    int value = val;
+    while (list_size > 0 && head->get() == value)
         this->pop_front();
 
-    while (list_size > 0 && tail->get_value() == value)
+    while (list_size > 0 && tail->get() == value)
         this->pop_back();
     
-    for (task::Node* curr_node = head; curr_node != tail; curr_node = curr_node->get_ptr_to_next_element()) {
-        if (curr_node->get_value() != value)
+    task::Node* curr_node = head;
+    while (curr_node != tail) {
+        if (curr_node->get() != value) {
+            task::Node::inc(curr_node);
             continue;
+        }
 
         erase_element_prev(curr_node);
+        task::Node::inc(curr_node);
     }
 }
 
 void task::list::unique() {
-    for (task::Node* curr_node = head; curr_node != nullptr; curr_node = curr_node->get_ptr_to_next_element()) {
+    task::Node* curr_node = head;
+    while (curr_node != nullptr) {
         if (list_size <= 1)
             break; 
 
-        while (list_size > 1 && curr_node != tail && curr_node->get_ptr_to_next_element()->get_value() == curr_node->get_value()) {
+        while (list_size > 1 && 
+            curr_node != tail && 
+            curr_node->get_next_value() == curr_node->get()) {
+            
             if (curr_node == head) {
-                curr_node = curr_node->get_ptr_to_next_element();
+                task::Node::inc(curr_node);
                 this->pop_front();
                 continue;
             }
 
             erase_element_next(curr_node);
         }
+
+        task::Node::inc(curr_node);
     }
 }
 
@@ -282,7 +328,7 @@ void task::list::erase_element_prev(task::Node* &elem) {
     elem->prev_element->set_next_element(elem->next_element);
     elem->next_element->set_prev_element(elem->prev_element);
 
-    elem = elem->get_ptr_to_prev_element();
+    task::Node::dec(elem);
     delete node_to_delete;
     list_size--;
 }
@@ -292,7 +338,7 @@ void task::list::erase_element_next(task::Node* &elem) {
     elem->prev_element->set_next_element(elem->next_element);
     elem->next_element->set_prev_element(elem->prev_element);
 
-    elem = elem->get_ptr_to_next_element();
+    task::Node::inc(elem);
     delete node_to_delete;
     list_size--;
 }
@@ -302,14 +348,18 @@ task::list task::list::merge_sort(const task::list l) {
         return l;
     
     task::list left, right;
-    task::Node* curr_element = l.head;
+    task::Node* curr_elem = l.head;
 
 
-    for (std::size_t i = 0; i < (l.size() + 1) / 2; i++, curr_element = curr_element->get_ptr_to_next_element())
-        left.push_back(curr_element->get_value());
+    for (std::size_t i = 0; i < (l.size() + 1) / 2; i++) {
+        left.push_back(curr_elem->get());
+        task::Node::inc(curr_elem);
+    }
 
-    for (std::size_t i = 0; i < l.size() / 2; i++, curr_element = curr_element->get_ptr_to_next_element())
-        right.push_back(curr_element->get_value());
+    for (std::size_t i = 0; i < l.size() / 2; i++) {
+        right.push_back(curr_elem->get());
+        task::Node::inc(curr_elem);
+    }
     
     left = merge_sort(left);
     right = merge_sort(right);
@@ -320,28 +370,28 @@ task::list task::list::merge_sort(const task::list l) {
 task::list task::list::merge(const task::list& a, const task::list& b) {
     task::list result;
 
-    task::Node* first_curr_element = a.head;
-    task::Node* second_curr_element = b.head;
+    task::Node* curr_elem_a = a.head;
+    task::Node* curr_elem_b = b.head;
 
-    while (first_curr_element != nullptr && second_curr_element != nullptr) {
-        if (first_curr_element->get_value() <= second_curr_element->get_value()) {
-            result.push_back(first_curr_element->get_value());
-            first_curr_element = first_curr_element->get_ptr_to_next_element();
+    while (curr_elem_a != nullptr && curr_elem_b != nullptr) {
+        if (curr_elem_a->get() <= curr_elem_b->get()) {
+            result.push_back(curr_elem_a->get());
+            task::Node::inc(curr_elem_a);
         } else {
-            result.push_back(second_curr_element->get_value());
-            second_curr_element = second_curr_element->get_ptr_to_next_element();
+            result.push_back(curr_elem_b->get());
+            task::Node::inc(curr_elem_b);
         }
 
     }
 
-    while (first_curr_element != nullptr) {
-        result.push_back(first_curr_element->get_value());
-        first_curr_element = first_curr_element->get_ptr_to_next_element();
+    while (curr_elem_a != nullptr) {
+        result.push_back(curr_elem_a->get());
+        task::Node::inc(curr_elem_a);
     }
 
-    while (second_curr_element != nullptr) {
-        result.push_back(second_curr_element->get_value());
-        second_curr_element = second_curr_element->get_ptr_to_next_element();
+    while (curr_elem_b != nullptr) {
+        result.push_back(curr_elem_b->get());
+        task::Node::inc(curr_elem_b);
     }
 
     return result;

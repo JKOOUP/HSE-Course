@@ -13,6 +13,8 @@ public:
     
     Node(Node* const left, Node* const right, int elem);
 
+    Node(int elem);
+
     Node(const Node& node);
 
     ~Node();
@@ -21,17 +23,25 @@ public:
 
     void set_prev_element(Node* const prev);
 
-    Node* get_ptr_to_prev_element() const;
+    Node* get_ptr_to_prev() const;
 
     void set_next_element(Node* const next);
 
-    Node* get_ptr_to_next_element() const;
+    Node* get_ptr_to_next() const;
 
-    const int& get_value() const;
+    const int& get() const;
 
-    int& get_value();
+    int& get();
+
+    int get_next_value() const;
+
+    int get_prev_value() const;
 
     static void swap(Node* &a, Node* &b);
+
+    static void inc(Node* &ptr);
+
+    static void dec(Node* &ptr);
 
 private:
     
