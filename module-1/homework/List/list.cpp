@@ -31,6 +31,9 @@ task::Node::~Node() {
 }
 
 task::Node& task::Node::operator=(const Node& node) {
+    if (this == &node)
+        return *this;
+
     next_element = node.next_element;
     prev_element = node.prev_element; 
     value = node.value;
@@ -137,9 +140,12 @@ task::list::~list() {
 }
 
 task::list& task::list::operator=(const list& other) {
-    this->clear();
+    if (this == &other)
+        return *this;
 
+    this->clear();
     this->list_size = other.size();
+    
     task::Node* curr_node = other.head;
     task::Node* prev_node = new task::Node(other.head->get());
     head = prev_node;
