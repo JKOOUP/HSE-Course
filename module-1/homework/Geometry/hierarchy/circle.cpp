@@ -12,8 +12,12 @@ Circle& Circle::operator=(const Circle& other) {
 	if (this == &other)	
 		return *this;
 
-	c = f1 = f2 = other.c;
-	a = b = other.a;
+	f1 = other.c;
+	f2 = other.c;
+	c = other.c;
+	a = other.a;
+	b = other.a;
+
 	return *this;
 }
 

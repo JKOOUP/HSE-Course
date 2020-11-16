@@ -48,10 +48,10 @@ protected:
 	std::vector<Point> vert; 
 
 	static std::size_t get_corresponding_vertice(const Polygon& a, 
-												 const Polygon& b);
+                                                 const Polygon& b);
 
 	static double get_similarity_coefficient(const Polygon& a, 
-											 const Polygon& b, 
+                                             const Polygon& b, 
 											 std::size_t pos1, 
 											 std::size_t pos2);
 };

@@ -215,7 +215,7 @@ std::ostream& operator<<(std::ostream& out, const Polygon& p) {
 	return out;
 }
 
-std::size_t Polygon::get_corresponding_vertice(const Polygon& a, 
+std::size_t Polygon::get_corresponding_vertice(const Polygon& a,
 											   const Polygon& b) {
 	std::vector <double> angles1 = a.getAngles();
 	std::vector <double> angles2 = b.getAngles();

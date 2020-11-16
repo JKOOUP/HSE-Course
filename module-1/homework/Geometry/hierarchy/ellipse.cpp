@@ -102,7 +102,7 @@ double Ellipse::area() {
 bool Ellipse::containsPoint(const Point & p) {
 	double d1 = dist(p, f1);
 	double d2 = dist(p, f2);
-	return (d1 + d2 <= 2 * a);
+	return ((d1 + d2) <= (2 * a));
 }
 
 void Ellipse::rotate(const Point& center, double angle) {
